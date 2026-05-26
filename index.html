@@ -51,7 +51,7 @@ nav.on{background:rgba(4,5,10,.9);backdrop-filter:blur(24px);padding:14px 0;bord
 .mmenu .xbtn{position:absolute;top:24px;right:32px;background:none;border:none;font-size:28px;color:var(--lt3);cursor:pointer}
 
 /* SECTION BASE */
-section{position:relative;z-index:1}
+section{position:relative;z-index:1;scroll-margin-top:80px}
 .glass{background:rgba(10,12,20,.78);backdrop-filter:blur(28px);border:1px solid rgba(201,152,10,.25)}
 .cw{max-width:1200px;margin:0 auto;padding:0 40px}
 .stag{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--g);margin-bottom:16px;display:flex;align-items:center;gap:12px}
@@ -309,7 +309,7 @@ footer{position:relative;z-index:1;background:rgba(4,5,10,.95);border-top:1px so
   <div class="ni">
     <a href="#" class="logo">les <span>vtc</span>parisiens.</a>
     <ul class="nl">
-      <li><a href="#fleet">Flotte</a></li>
+      <li><a href="#cars3d">Flotte</a></li>
       <li><a href="#services">Destinations</a></li>
       <li><a href="#faq">FAQ</a></li>
       <li><a href="#contact">Contact</a></li>
@@ -557,7 +557,7 @@ footer{position:relative;z-index:1;background:rgba(4,5,10,.95);border-top:1px so
         <div class="ci"><div class="ci-ico">&#9201;</div><div><div class="ci-lbl">Disponibilité</div><div class="ci-val">24h/24 · 7j/7</div></div></div>
       </div>
       <div class="rev-r cf">
-        <form name="contact" method="POST" data-netlify="true" action="/success.html">
+        <form name="contact" method="POST" data-netlify="true" action="/merci.html">
           <input type="hidden" name="form-name" value="contact">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="f"><label>Nom</label><input type="text" name="name" placeholder="Jean Dupont" required></div>
@@ -764,27 +764,28 @@ var fTimer=null,tTimer=null;
 
 function detectZoneFromText(label, lat, lon) {
   var t = label.toLowerCase();
-  if(t.includes("charles de gaulle")||t.includes("roissy")||t.includes(" cdg")) return "cdg";
-  if(t.includes("orly")) return "orly";
-  if(t.includes("beauvais")) return "bva";
-  if(t.includes("disneyland")||t.includes("marne-la-vall")||t.includes("chessy")) return "disney";
+  // Airports - keyword detection
+  if(t.includes("charles de gaulle")||t.includes("roissy")||t.includes("cdg")||t.includes("tremblay-en-france")||t.includes("aeroport de paris-ch")||t.includes("terminal 2")||t.includes("terminal 3")) return "cdg";
+  if(t.includes("orly")||t.includes("aeroport de paris-orly")||t.includes("villeneuve-le-roi")) return "orly";
+  if(t.includes("beauvais")||t.includes("bva")||t.includes("tille")) return "bva";
+  if(t.includes("disneyland")||t.includes("marne-la-vall")||t.includes("chessy")||t.includes("val d'europe")) return "disney";
   if(t.includes("versailles")) return "versailles";
   if(t.includes("gare de lyon")||t.includes("gare du nord")||t.includes("gare montparnasse")||t.includes("saint-lazare")||t.includes("gare de l")) return "gare";
   if(lat&&lon) {
-    if(lat>=48.815&&lat<=48.902&&lon>=2.224&&lon<=2.470) return "paris";
-    // CDG area
-    if(lat>=48.97&&lat<=49.04&&lon>=2.5&&lon<=2.65) return "cdg";
+    // CDG area (large)
+    if(lat>=48.95&&lat<=49.05&&lon>=2.48&&lon<=2.68) return "cdg";
     // Orly area
-    if(lat>=48.70&&lat<=48.75&&lon>=2.34&&lon<=2.42) return "orly";
-    // Disneyland area
-    if(lat>=48.85&&lat<=48.90&&lon>=2.75&&lon<=2.85) return "disney";
-    // Versailles area
-    if(lat>=48.78&&lat<=48.83&&lon>=2.08&&lon<=2.18) return "versailles";
+    if(lat>=48.68&&lat<=48.76&&lon>=2.33&&lon<=2.44) return "orly";
     // Beauvais area
-    if(lat>=49.42&&lat<=49.48&&lon>=2.08&&lon<=2.15) return "bva";
+    if(lat>=49.40&&lat<=49.50&&lon>=2.06&&lon<=2.18) return "bva";
+    // Disneyland area
+    if(lat>=48.83&&lat<=48.90&&lon>=2.73&&lon<=2.88) return "disney";
+    // Versailles area
+    if(lat>=48.77&&lat<=48.84&&lon>=2.06&&lon<=2.19) return "versailles";
+    // Paris intra-muros
+    if(lat>=48.815&&lat<=48.902&&lon>=2.224&&lon<=2.470) return "paris";
   }
-  // Paris postcodes
-  if(/75[0-9]{3}/.test(label)||/75\s*0[0-9]{2}/.test(label)) return "paris";
+  if(/75[0-9]{3}/.test(label)) return "paris";
   if(t.includes("paris")) return "paris";
   return null;
 }
