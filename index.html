@@ -51,7 +51,7 @@ nav.on{background:rgba(4,5,10,.9);backdrop-filter:blur(24px);padding:14px 0;bord
 .mmenu .xbtn{position:absolute;top:24px;right:32px;background:none;border:none;font-size:28px;color:var(--lt3);cursor:pointer}
 
 /* SECTION BASE */
-section{position:relative;z-index:1;scroll-margin-top:80px}
+section{position:relative;z-index:1;scroll-margin-top:90px}
 .glass{background:rgba(10,12,20,.78);backdrop-filter:blur(28px);border:1px solid rgba(201,152,10,.25)}
 .cw{max-width:1200px;margin:0 auto;padding:0 40px}
 .stag{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--g);margin-bottom:16px;display:flex;align-items:center;gap:12px}
@@ -790,14 +790,69 @@ function detectZoneFromText(label, lat, lon) {
   return null;
 }
 
+// Predefined important places (airports, stations)
+var PLACES = [
+  {label:"Aéroport Paris Charles de Gaulle (CDG)", lat:49.0097, lon:2.5479, zone:"cdg", keys:["cdg","charles de gaulle","roissy","charles","gaulle"]},
+  {label:"Aéroport Paris Orly (ORY)", lat:48.7233, lon:2.3794, zone:"orly", keys:["orly","ory"]},
+  {label:"Aéroport Beauvais Tillé (BVA)", lat:49.4544, lon:2.1127, zone:"bva", keys:["beauvais","bva","tille"]},
+  {label:"Disneyland Paris (Val d'Europe)", lat:48.8722, lon:2.7755, zone:"disney", keys:["disney","disneyland","chessy","val d'europe","marne"]},
+  {label:"Château de Versailles", lat:48.8048, lon:2.1203, zone:"versailles", keys:["versailles","château de versailles"]},
+  {label:"Gare de Lyon, Paris", lat:48.8449, lon:2.3735, zone:"gare", keys:["gare de lyon","lyon"]},
+  {label:"Gare du Nord, Paris", lat:48.8809, lon:2.3553, zone:"gare", keys:["gare du nord","nord"]},
+  {label:"Gare Montparnasse, Paris", lat:48.8408, lon:2.3202, zone:"gare", keys:["montparnasse","gare montparnasse"]},
+  {label:"Gare Saint-Lazare, Paris", lat:48.8757, lon:2.3252, zone:"gare", keys:["saint-lazare","lazare","st lazare"]},
+  {label:"Gare de l'Est, Paris", lat:48.8768, lon:2.3590, zone:"gare", keys:["gare de l'est","l'est","gare est"]},
+  {label:"Paris Centre (75)", lat:48.8566, lon:2.3522, zone:"paris", keys:["paris centre","paris 75","centre paris"]}
+];
+
+function getLocalMatches(q) {
+  var t = q.toLowerCase().trim();
+  var results = [];
+  for(var i=0; i<PLACES.length; i++) {
+    for(var j=0; j<PLACES[i].keys.length; j++) {
+      if(PLACES[i].keys[j].indexOf(t)>=0 || t.indexOf(PLACES[i].keys[j])>=0) {
+        results.push(PLACES[i]);
+        break;
+      }
+    }
+  }
+  return results;
+}
+
 function searchAddress(query, field, callback) {
-  if(!query || query.length < 3) return;
-  fetch("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(query)+"&limit=6")
-    .then(function(r){ return r.json(); })
-    .then(function(data) {
-      if(data && data.features) callback(data.features, field);
-    })
-    .catch(function(){});
+  if(!query || query.length < 2) return;
+  var locals = getLocalMatches(query);
+  if(locals.length > 0) {
+    // Show local matches immediately
+    var features = locals.map(function(p) {
+      return {properties:{label:p.label,_zone:p.zone}, geometry:{coordinates:[p.lon,p.lat]}};
+    });
+    callback(features, field);
+  }
+  // Also call API for non-airport queries (only if query >= 3 chars)
+  if(query.length >= 3) {
+    fetch("https://api-adresse.data.gouv.fr/search/?q="+encodeURIComponent(query)+"&limit=5")
+      .then(function(r){ return r.json(); })
+      .then(function(data) {
+        if(data && data.features && data.features.length > 0) {
+          // Merge with locals (avoid duplicates)
+          var apiFeatures = data.features.filter(function(f) {
+            var lbl = (f.properties.label||"").toLowerCase();
+            for(var k=0; k<locals.length; k++) {
+              if(lbl.includes(locals[k].zone)) return false;
+            }
+            return true;
+          });
+          if(apiFeatures.length > 0) {
+            var merged = locals.map(function(p) {
+              return {properties:{label:p.label,_zone:p.zone}, geometry:{coordinates:[p.lon,p.lat]}};
+            }).concat(apiFeatures).slice(0,7);
+            callback(merged, field);
+          }
+        }
+      })
+      .catch(function(){});
+  }
 }
 
 function showApiSug(features, field) {
@@ -807,7 +862,8 @@ function showApiSug(features, field) {
   var h = "";
   features.forEach(function(f, i) {
     var label = f.properties.label || "";
-    h += "<div class='sugitem' data-field='"+field+"' data-idx='"+i+"' data-label='"+label.replace(/'/g,"&#39;")+"' data-lat='"+f.geometry.coordinates[1]+"' data-lon='"+f.geometry.coordinates[0]+"'>"+label+"</div>";
+    var zone = f.properties._zone || "";
+    h += "<div class='sugitem' data-field='"+field+"' data-idx='"+i+"' data-label='"+label.replace(/'/g,"&#39;")+"' data-lat='"+f.geometry.coordinates[1]+"' data-lon='"+f.geometry.coordinates[0]+"' data-zone='"+zone+"'>"+label+"</div>";
   });
   box.innerHTML = h;
   box.style.display = "block";
@@ -819,10 +875,12 @@ function showApiSug(features, field) {
         var lbl = el.getAttribute("data-label");
         var lat = parseFloat(el.getAttribute("data-lat"));
         var lon = parseFloat(el.getAttribute("data-lon"));
+        var zone = el.getAttribute("data-zone");
         document.getElementById("addr-"+ff).value = lbl;
         box.style.display = "none";
-        if(ff==="from"){ fL=lbl; fCoord={lat:lat,lon:lon}; fZ=detectZoneFromText(lbl,lat,lon); }
-        else { tL=lbl; tCoord={lat:lat,lon:lon}; tZ=detectZoneFromText(lbl,lat,lon); }
+        var detectedZone = zone || detectZoneFromText(lbl,lat,lon);
+        if(ff==="from"){ fL=lbl; fCoord={lat:lat,lon:lon}; fZ=detectedZone; }
+        else { tL=lbl; tCoord={lat:lat,lon:lon}; tZ=detectedZone; }
         calcRoute();
       });
     })(items[k]);
