@@ -755,8 +755,6 @@ var P = {
   "paris-orly":{b:65,v:90},"orly-paris":{b:75,v:100},
   "paris-bva":{b:180,v:230},"bva-paris":{b:200,v:250},
   "paris-disney":{b:105,v:140},"disney-paris":{b:115,v:150},
-  "paris-versailles":{b:80,v:100},"versailles-paris":{b:80,v:100},
-  "paris-gare":{b:60,v:80},"gare-paris":{b:70,v:90},
   "paris-paris":{b:60,v:80}
 };
 var fL="",tL="",fZ=null,tZ=null,fCoord=null,tCoord=null,vh2="b";
@@ -770,7 +768,8 @@ function detectZoneFromText(label, lat, lon) {
   if(t.includes("beauvais")||t.includes("bva")||t.includes("tille")) return "bva";
   if(t.includes("disneyland")||t.includes("marne-la-vall")||t.includes("chessy")||t.includes("val d'europe")) return "disney";
   if(t.includes("versailles")) return "versailles";
-  if(t.includes("gare de lyon")||t.includes("gare du nord")||t.includes("gare montparnasse")||t.includes("saint-lazare")||t.includes("gare de l")) return "gare";
+  // Gares = zone paris (même tarif que Paris centre)
+if(t.includes("gare de lyon")||t.includes("gare du nord")||t.includes("montparnasse")||t.includes("saint-lazare")||t.includes("gare de l")||t.includes("gare est")||t.includes("bercy")) return "paris";
   if(lat&&lon) {
     // CDG area (large)
     if(lat>=48.95&&lat<=49.05&&lon>=2.48&&lon<=2.68) return "cdg";
@@ -796,13 +795,17 @@ var PLACES = [
   {label:"Aéroport Paris Orly (ORY)", lat:48.7233, lon:2.3794, zone:"orly", keys:["orly","ory"]},
   {label:"Aéroport Beauvais Tillé (BVA)", lat:49.4544, lon:2.1127, zone:"bva", keys:["beauvais","bva","tille"]},
   {label:"Disneyland Paris (Val d'Europe)", lat:48.8722, lon:2.7755, zone:"disney", keys:["disney","disneyland","chessy","val d'europe","marne"]},
-  {label:"Château de Versailles", lat:48.8048, lon:2.1203, zone:"versailles", keys:["versailles","château de versailles"]},
-  {label:"Gare de Lyon, Paris", lat:48.8449, lon:2.3735, zone:"gare", keys:["gare de lyon","lyon"]},
-  {label:"Gare du Nord, Paris", lat:48.8809, lon:2.3553, zone:"gare", keys:["gare du nord","nord"]},
-  {label:"Gare Montparnasse, Paris", lat:48.8408, lon:2.3202, zone:"gare", keys:["montparnasse","gare montparnasse"]},
-  {label:"Gare Saint-Lazare, Paris", lat:48.8757, lon:2.3252, zone:"gare", keys:["saint-lazare","lazare","st lazare"]},
-  {label:"Gare de l'Est, Paris", lat:48.8768, lon:2.3590, zone:"gare", keys:["gare de l'est","l'est","gare est"]},
-  {label:"Paris Centre (75)", lat:48.8566, lon:2.3522, zone:"paris", keys:["paris centre","paris 75","centre paris"]}
+  {label:"Paris Centre (75)", lat:48.8566, lon:2.3522, zone:"paris", keys:["paris centre","paris 75","centre paris"]},
+  {label:"Gare Montparnasse, Paris", lat:48.8408, lon:2.3202, zone:"paris", keys:["montparnasse","gare montparnasse"]},
+  {label:"Gare de Lyon, Paris", lat:48.8449, lon:2.3735, zone:"paris", keys:["gare de lyon"]},
+  {label:"Gare du Nord, Paris", lat:48.8809, lon:2.3553, zone:"paris", keys:["gare du nord"]},
+  {label:"Gare Saint-Lazare, Paris", lat:48.8757, lon:2.3252, zone:"paris", keys:["saint-lazare","lazare"]},
+  {label:"Gare de l Est, Paris", lat:48.8768, lon:2.3590, zone:"paris", keys:["gare de l est","gare est"]},
+  {label:"La Défense, Puteaux", lat:48.8924, lon:2.2381, zone:"paris", keys:["la defense","defense","puteaux"]},
+  {label:"Neuilly-sur-Seine", lat:48.8848, lon:2.2665, zone:"paris", keys:["neuilly"]},
+  {label:"Boulogne-Billancourt", lat:48.8352, lon:2.2411, zone:"paris", keys:["boulogne"]},
+  {label:"Vincennes", lat:48.8481, lon:2.4392, zone:"paris", keys:["vincennes"]},
+  {label:"Saint-Denis", lat:48.9362, lon:2.3574, zone:"paris", keys:["saint-denis"]}
 ];
 
 function getLocalMatches(q) {
