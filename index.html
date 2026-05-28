@@ -952,7 +952,7 @@ function calcRoute() {
     if(btn){btn.disabled=false;btn.textContent="Continuer la réservation →";}
   } else if(fCoord&&tCoord) {
     var dist=haversine(fCoord.lat,fCoord.lon,tCoord.lat,tCoord.lon);
-    var prB=Math.round(50+dist*2.5), prV=Math.round(80+dist*4.5);
+    var prB=Math.round(50+dist*2), prV=Math.round(80+dist*3);
     document.getElementById("price-b").textContent=prB+" EUR";
     document.getElementById("price-v").textContent=prV+" EUR";
     document.getElementById("route-info").textContent=fL+" → "+tL+" ("+dist+"km estimé)";
@@ -970,7 +970,7 @@ function om2() {
   if(!d) return alert("Veuillez sélectionner une date.");
   if(!t) return alert("Veuillez sélectionner une heure.");
   var key=getKey(), prices=key?P[key]:null, p=prices?prices[vh2]:null;
-  if(!p&&fCoord&&tCoord){var dist=haversine(fCoord.lat,fCoord.lon,tCoord.lat,tCoord.lon);p=vh2==="b"?Math.round(50+dist*2.5):Math.round(80+dist*4.5);}
+  if(!p&&fCoord&&tCoord){var dist=haversine(fCoord.lat,fCoord.lon,tCoord.lat,tCoord.lon);p=vh2==="b"?Math.round(50+dist*2):Math.round(80+dist*3);}
   if(!p) return alert("Trajet non répertorié. Contactez-nous.");
   var dl=new Date(d).toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
   document.getElementById("msum").textContent=fL+" → "+tL+" · "+(vh2==="b"?"Berline":"Van")+" · "+dl+" à "+t;
@@ -986,7 +986,7 @@ function pay(){
   if(!e.includes("@")){err.textContent="Email invalide.";err.style.display="block";return;}
   var btn=document.getElementById("bpay");btn.disabled=true;btn.textContent="Redirection...";
   var key=getKey(),prices=key?P[key]:null,p=prices?prices[vh2]:null;
-  if(!p&&fCoord&&tCoord){var dist=haversine(fCoord.lat,fCoord.lon,tCoord.lat,tCoord.lon);p=vh2==="b"?Math.round(50+dist*2.5):Math.round(80+dist*4.5);}
+  if(!p&&fCoord&&tCoord){var dist=haversine(fCoord.lat,fCoord.lon,tCoord.lat,tCoord.lon);p=vh2==="b"?Math.round(50+dist*2):Math.round(80+dist*3);}
   fetch("/.netlify/functions/create-checkout",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({routeLabel:fL+" → "+tL,vehicle:vh2==="b"?"berline":"van",date:document.getElementById("dt").value,time:document.getElementById("tm").value,flight:document.getElementById("fl").value||"",name:n,email:e,phone:ph,price:p})})
   .then(function(r){return r.json();})
